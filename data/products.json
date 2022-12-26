@@ -1,0 +1,30 @@
+[
+  {
+    "id": "122",
+    "title": "Book",
+    "description": "A very interesting book about so many even more interesting things!",
+    "imageUrl": "https://cdn.pixabay.com/photo/2016/03/31/20/51/book-1296045_960_720.png",
+    "price": "20"
+  },
+  {
+    "id": "123",
+    "title": "Coffee",
+    "description": "This caffe latte has the best creamy body and frothy milk: it tastes even better than a coffee shop.",
+    "imageUrl": "https://www.acouplecooks.com/wp-content/uploads/2021/05/Latte-Art-070.jpg",
+    "price": "15.66"
+  },
+  {
+    "id": "124",
+    "title": "Water bottle",
+    "description": "Personalised Vacuum Insulated Bottle With Handle- 750ml",
+    "imageUrl": "https://cdn.shopify.com/s/files/1/3103/5874/products/DSC_8004_280x.jpg?v=1656006525",
+    "price": "25"
+  },
+  {
+    "id": "428",
+    "title": "Dell Inspiron",
+    "description": " The Dell Inspiron 15 3000 is okay for school use. It's portable thanks to its thin and light design, and it feels well-built even though it's entirely plastic. The display is decently sharp, the touchpad tracks well, but the keyboard is a bit tiring to type on for long period",
+    "imageUrl": "https://www.intel.com/content/dam/www/central-libraries/us/en/images/2022-08/shopblade-dell-inspiron.png.rendition.intel.web.416.234.png",
+    "price": "750"
+  }
+]

@@ -4,9 +4,11 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const session = require("express-session");
 const MongoDBStore = require("connect-mongodb-session")(session);
+const csrf = require("csurf");
+const flash = require("connect-flash");
 
 const errorController = require("./controllers/error");
-const PASSWORD = require("./utils/password");
+const PASSWORD = require("./utils/password").mongodbpass;
 
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
@@ -31,6 +33,8 @@ const store = new MongoDBStore({
   collection: "sessions",
 }); // storing session in a session store
 
+const csrfProtection = csrf();
+
 app.use(
   session({
     secret: "my secret key",
@@ -39,6 +43,16 @@ app.use(
     store: store,
   })
 );
+
+app.use(flash());
+
+app.use(csrfProtection);
+
+app.use((request, response, next) => {
+  response.locals.isAuthenticated = request.session.isLoggedIn;
+  response.locals.csrfToken = request.csrfToken();
+  next();
+});
 
 app.use(async (request, response, next) => {
   try {
@@ -64,18 +78,7 @@ async function main() {
     const connection = await mongoose.connect(MONGO_URI);
 
     if (connection) {
-      app.listen(3000, async () => {
-        const isUserAvailable = await User.findOne();
-        if (!isUserAvailable) {
-          const user = new User({
-            name: "Jerome",
-            email: "test@test.com",
-            cart: { items: [] },
-          });
-          await user.save();
-
-          console.log("Server Running a http://localhost:3000");
-        }
+      app.listen(3000, () => {
         console.log("Server Running a http://localhost:3000");
       });
     }

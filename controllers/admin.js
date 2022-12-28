@@ -5,6 +5,7 @@ exports.getAddProduct = (request, response, next) => {
     docTitle: "Add-Product",
     path: "/add-product",
     editing: false,
+    isAuthenticated: request.session.isLoggedIn,
   });
 };
 
@@ -18,7 +19,7 @@ exports.postAddProduct = async (request, response, next) => {
     description: description,
     imageUrl: imageUrl,
     price: price,
-    userId: request.user,
+    userId: request.session.user,
   });
 
   try {
@@ -35,12 +36,13 @@ exports.getProducts = async (request, response, next) => {
     // .select("title price -_id")
     // .populate("userId", "name");
 
-    console.log(products);
+    // console.log(products);
 
     response.render("admin/products", {
       prods: products,
       docTitle: "Products",
       path: "/admin/products",
+      isAuthenticated: request.session.isLoggedIn,
     });
   } catch (error) {
     console.log(error);
@@ -65,6 +67,7 @@ exports.getEditProduct = async (request, response, next) => {
       path: "/edit-product",
       editing: editMode,
       product: product,
+      isAuthenticated: request.session.isLoggedIn,
     });
   } catch (error) {
     console.log(error);

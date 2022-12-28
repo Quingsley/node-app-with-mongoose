@@ -9,6 +9,7 @@ exports.getProducts = async (request, response, next) => {
         prods: products,
         docTitle: "All Products",
         path: "/products",
+        isAuthenticated: request.session.isLoggedIn,
       });
     }
   } catch (error) {
@@ -24,6 +25,7 @@ exports.getProductsDetail = async (request, response, next) => {
       docTitle: product.title,
       path: "/products",
       product: product,
+      isAuthenticated: request.session.isLoggedIn,
     });
   } catch (error) {
     console.log(error);
@@ -38,6 +40,7 @@ exports.getIndex = async (request, response, next) => {
         products: products,
         docTitle: "SHOP 🏪",
         path: "/",
+        isAuthenticated: request.session.isLoggedIn,
       });
     }
   } catch (error) {
@@ -52,6 +55,7 @@ exports.getCart = async (request, response, next) => {
       docTitle: "Your Cart 🛒",
       path: "/cart",
       cart: data.cart.items,
+      isAuthenticated: request.session.isLoggedIn,
     });
   } catch (error) {
     console.log(error);
@@ -85,12 +89,15 @@ exports.deleteCartProduct = async (request, response, next) => {
 
 exports.getOrders = async (request, response, next) => {
   try {
-    const orders = await Order.find({ "user.userId": request.user._id });
+    const orders = await Order.find({
+      "user.userId": request.user._id,
+    });
 
     response.render("shop/orders", {
       docTitle: "Your Orders",
       path: "/orders",
       orders: orders,
+      isAuthenticated: request.session.isLoggedIn,
     });
   } catch (error) {
     console.log(error);

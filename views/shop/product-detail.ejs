@@ -11,15 +11,17 @@
             <img src="<%= product.imageUrl %>" alt="<%= product.title %>" class="product-image">
 
             <!-- Price -->
-            <p class="product-price">$<%= product.price %>
+            <p class="product-price">PRICE: $<%= product.price %>
             </p>
 
             <!-- Description -->
             <p class="product-description">
-                <%= product.description %>
+                DESCRIPTION: <%= product.description %>
             </p>
             <!-- Cart -->
-            <%- include('../includes/add-to-cart.ejs') %>
+            <div class="product-cart">
+                <%- include('../includes/add-to-cart.ejs') %>
+            </div>
         </div>
 
 

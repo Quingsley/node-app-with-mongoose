@@ -5,7 +5,6 @@ exports.getAddProduct = (request, response, next) => {
     docTitle: "Add-Product",
     path: "/add-product",
     editing: false,
-    isAuthenticated: request.session.isLoggedIn,
   });
 };
 
@@ -42,7 +41,6 @@ exports.getProducts = async (request, response, next) => {
       prods: products,
       docTitle: "Products",
       path: "/admin/products",
-      isAuthenticated: request.session.isLoggedIn,
     });
   } catch (error) {
     console.log(error);
@@ -67,7 +65,6 @@ exports.getEditProduct = async (request, response, next) => {
       path: "/edit-product",
       editing: editMode,
       product: product,
-      isAuthenticated: request.session.isLoggedIn,
     });
   } catch (error) {
     console.log(error);

@@ -4,3 +4,12 @@
   margin: auto;
   display: block;
 }
+
+.reset-password:link,
+.reset-password:visited {
+  text-decoration: none;
+  color: #00695c;
+  margin-top: 24px;
+  font-weight: bold;
+  display: inline-block;
+}

@@ -59,19 +59,27 @@ app.use(async (request, response, next) => {
     if (!request.session.user) return next();
     const user = await User.findById(request.session.user._id);
     if (!user) {
-      response.redirect("/404");
+      next();
     }
     request.user = user;
     next();
   } catch (error) {
-    console.log(error);
+    next(new Error(error));
   }
 });
 
 app.use("/admin", adminRoutes);
 app.use(shopRoutes);
 app.use(loginRoutes);
+app.get("/500", errorController.get500page);
 app.use(errorController.get404page);
+app.use((error, request, response, next) => {
+  // response.redirect("/500");
+  response.status(500).render("500", {
+    docTitle: "Error",
+    path: "/500",
+  });
+});
 
 async function main() {
   try {
@@ -83,7 +91,7 @@ async function main() {
       });
     }
   } catch (error) {
-    console.log(error);
+    console.log(error); //TODO fix error
   }
 }
 

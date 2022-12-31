@@ -1,10 +1,12 @@
 const Product = require("../models/product");
 const { validationResult } = require("express-validator");
 
+const errorHandler = require("../utils/errorhandler");
+
 exports.getAddProduct = (request, response, next) => {
   response.render("admin/edit-product", {
     docTitle: "Add-Product",
-    path: "/add-product",
+    path: "/admin/add-product",
     editing: false,
     errorMessage: null,
     hasErrors: false,
@@ -22,7 +24,7 @@ exports.postAddProduct = async (request, response, next) => {
   if (error.length > 0) {
     return response.status(422).render("admin/edit-product", {
       docTitle: "Add-Product",
-      path: "/add-product",
+      path: "/admin/add-product",
       editing: false,
       hasErrors: true,
       errorMessage: error[0].msg,
@@ -48,7 +50,7 @@ exports.postAddProduct = async (request, response, next) => {
 
     response.redirect("/admin/products");
   } catch (error) {
-    console.log(error);
+    errorHandler(error, next);
   }
 };
 
@@ -69,7 +71,7 @@ exports.getProducts = async (request, response, next) => {
       validationErrors: [],
     });
   } catch (error) {
-    console.log(error);
+    errorHandler(error, next);
   }
 };
 
@@ -96,7 +98,7 @@ exports.getEditProduct = async (request, response, next) => {
       validationErrors: [],
     });
   } catch (error) {
-    console.log(error);
+    errorHandler(error, next);
   }
 };
 
@@ -141,7 +143,7 @@ exports.postEditProduct = async (request, response, next) => {
       response.redirect("/admin/products");
     }
   } catch (error) {
-    console.log(error);
+    errorHandler(error, next);
   }
 };
 
@@ -158,6 +160,6 @@ exports.postDeleteProduct = async (request, response, next) => {
       response.redirect("/admin/products");
     }
   } catch (error) {
-    console.log(error);
+    errorHandler(error, next);
   }
 };

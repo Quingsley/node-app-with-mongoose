@@ -1,5 +1,6 @@
 const Product = require("../models/product");
 const Order = require("../models/order");
+const errorHandler = require("../utils/errorhandler");
 
 exports.getProducts = async (request, response, next) => {
   try {
@@ -12,7 +13,7 @@ exports.getProducts = async (request, response, next) => {
       });
     }
   } catch (error) {
-    console.log(error);
+    errorHandler(error, next);
   }
 };
 
@@ -26,7 +27,7 @@ exports.getProductsDetail = async (request, response, next) => {
       product: product,
     });
   } catch (error) {
-    console.log(error);
+    errorHandler(error, next);
   }
 };
 
@@ -41,7 +42,7 @@ exports.getIndex = async (request, response, next) => {
       });
     }
   } catch (error) {
-    console.log(error);
+    errorHandler(error, next);
   }
 };
 
@@ -54,7 +55,7 @@ exports.getCart = async (request, response, next) => {
       cart: data.cart.items,
     });
   } catch (error) {
-    console.log(error);
+    errorHandler(error, next);
   }
 };
 exports.postCart = async (request, response, next) => {
@@ -67,7 +68,7 @@ exports.postCart = async (request, response, next) => {
       response.redirect("/cart");
     }
   } catch (error) {
-    console.error(error);
+    errorHandler(error, next);
   }
 };
 
@@ -79,7 +80,7 @@ exports.deleteCartProduct = async (request, response, next) => {
       response.redirect("/cart");
     }
   } catch (error) {
-    console.error(error);
+    errorHandler(error, next);
   }
 };
 
@@ -95,7 +96,7 @@ exports.getOrders = async (request, response, next) => {
       orders: orders,
     });
   } catch (error) {
-    console.log(error);
+    errorHandler(error, next);
   }
 };
 
@@ -124,6 +125,6 @@ exports.postOrders = async (request, response, next) => {
       }
     }
   } catch (error) {
-    console.log(error);
+    errorHandler(error, next);
   }
 };

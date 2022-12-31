@@ -7,6 +7,7 @@ const crypto = require("crypto");
 
 const User = require("../models/user");
 const sendGridApiKey = require("../utils/password").sendgridkey;
+const errorHandler = require("../utils/errorhandler");
 
 sendGridMail.setApiKey(sendGridApiKey);
 
@@ -106,7 +107,7 @@ exports.postLogin = async (request, response, next) => {
       }
     }
   } catch (error) {
-    console.log(error);
+    errorHandler(error, next);
   }
 };
 
@@ -158,7 +159,7 @@ exports.postSignup = async (request, response, next) => {
       }
     }
   } catch (error) {
-    console.error("ERROR", error);
+    errorHandler(error, next);
   }
 };
 
@@ -208,7 +209,7 @@ exports.postReset = async (request, response, next) => {
       await sendGridMail.send(msg);
     }
   } catch (error) {
-    console.error(error);
+    errorHandler(error, next);
   }
 };
 
@@ -232,7 +233,7 @@ exports.getNewPassword = async (request, response, next) => {
       });
     }
   } catch (err) {
-    console.log(err);
+    errorHandler(err, next);
   }
 };
 
@@ -257,6 +258,6 @@ exports.postNewPassword = async (request, response, next) => {
       }
     }
   } catch (error) {
-    console.log(error);
+    errorHandler(error, next);
   }
 };

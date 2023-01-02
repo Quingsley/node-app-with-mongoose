@@ -46,7 +46,7 @@
                                             <% }); %>
                                                 <p>Total : $<%= order.products.reduce((acc,product)=>{
                                                         return acc + (product.product.price * product.quantity)
-                                                        }, 0 ) %> </p>
+                                                        }, 0 ) %> <a href="/invoice/<%= order._id %>">Invoice</a> </p>
                                     </ul>
                                 </li>
                                 <% }); %>

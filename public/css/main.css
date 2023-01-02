@@ -262,3 +262,22 @@ form {
     display: none;
   }
 }
+
+.pagination {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.pagination a:link {
+  text-decoration: none;
+  color: #00695c;
+  padding: 0 0.5rem;
+}
+
+.pagination a:active,
+.pagination a:hover,
+.pagination a.active {
+  background-color: #00695c;
+  color: #f7f7f7;
+  border: 2px solid #00695c;
+}

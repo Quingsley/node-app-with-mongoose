@@ -12,7 +12,7 @@ router.post(
   isAuth,
   [
     body("title", "Enter a vaild Title").isString().trim().isLength({ min: 3 }),
-    body("imageUrl", "Enter a vaild URL").trim().isURL(),
+    // body("imageUrl", "Enter a vaild URL").trim().isURL(),
     body("price", "Enter a valid price").isFloat().trim(),
     body(
       "description",
@@ -37,7 +37,7 @@ router.post(
   isAuth,
   [
     body("title", "Enter a vaild Title").isString().trim().isLength({ min: 3 }),
-    body("imageUrl", "Enter a vaild URL").trim().isURL(),
+    // body("imageUrl", "Enter a vaild URL").trim().isURL(),
     body("price", "Enter a valid price").isFloat().trim(),
     body(
       "description",

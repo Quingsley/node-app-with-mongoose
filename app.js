@@ -6,6 +6,8 @@ const session = require("express-session");
 const MongoDBStore = require("connect-mongodb-session")(session);
 const csrf = require("csurf");
 const flash = require("connect-flash");
+const multer = require("multer");
+const { v4: uuidv4 } = require("uuid");
 
 const errorController = require("./controllers/error");
 const PASSWORD = require("./utils/password").mongodbpass;
@@ -22,9 +24,9 @@ app.set("view engine", "ejs");
 app.set("views", "views");
 
 //Middlewares
-app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(express.static(path.join(__dirname, "/public")));
+app.use("/images", express.static(path.join(__dirname, "/images")));
 
 const MONGO_URI = `mongodb+srv://quingsley:${PASSWORD}@cluster0.hkxyhxj.mongodb.net/shop-1?retryWrites=true`;
 
@@ -33,7 +35,30 @@ const store = new MongoDBStore({
   collection: "sessions",
 }); // storing session in a session store
 
-const csrfProtection = csrf();
+const fileStorage = multer.diskStorage({
+  destination: (request, file, cb) => {
+    cb(null, "images");
+  },
+  filename: (request, file, cb) => {
+    cb(null, uuidv4() + "-" + file.originalname.replaceAll(" ", ""));
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  if (
+    file.mimetype === "image/png" ||
+    file.mimetype === "image/jpg" ||
+    file.mimetype === "image/jpeg"
+  ) {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+};
+app.use(
+  multer({ storage: fileStorage, fileFilter: fileFilter }).single("image")
+);
+app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(
   session({
@@ -46,6 +71,7 @@ app.use(
 
 app.use(flash());
 
+const csrfProtection = csrf();
 app.use(csrfProtection);
 
 app.use((request, response, next) => {
@@ -75,9 +101,11 @@ app.get("/500", errorController.get500page);
 app.use(errorController.get404page);
 app.use((error, request, response, next) => {
   // response.redirect("/500");
+  console.error("ERROR", error);
   response.status(500).render("500", {
     docTitle: "Error",
     path: "/500",
+    isAuthenticated: request.session.isLoggedIn,
   });
 });
 

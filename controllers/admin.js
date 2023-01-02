@@ -2,6 +2,7 @@ const Product = require("../models/product");
 const { validationResult } = require("express-validator");
 
 const errorHandler = require("../utils/errorhandler");
+const fileHelper = require("../utils/file");
 
 exports.getAddProduct = (request, response, next) => {
   response.render("admin/edit-product", {
@@ -17,8 +18,23 @@ exports.getAddProduct = (request, response, next) => {
 exports.postAddProduct = async (request, response, next) => {
   const title = request.body.title;
   const description = request.body.description;
-  const imageUrl = request.body.imageUrl;
+  const image = request.file;
   const price = request.body.price;
+  if (!image) {
+    return response.status(422).render("admin/edit-product", {
+      docTitle: "Add-Product",
+      path: "/admin/add-product",
+      editing: false,
+      hasErrors: true,
+      errorMessage: "Attached file is not an image",
+      validationErrors: [],
+      product: {
+        title: title,
+        description: description,
+        price: price,
+      },
+    });
+  }
 
   const error = validationResult(request).errors;
   if (error.length > 0) {
@@ -32,7 +48,6 @@ exports.postAddProduct = async (request, response, next) => {
       product: {
         title: title,
         description: description,
-        imageUrl: imageUrl,
         price: price,
       },
     });
@@ -40,7 +55,7 @@ exports.postAddProduct = async (request, response, next) => {
   const product = new Product({
     title: title,
     description: description,
-    imageUrl: imageUrl,
+    imageUrl: image.path,
     price: price,
     userId: request.session.user,
   });
@@ -50,6 +65,7 @@ exports.postAddProduct = async (request, response, next) => {
 
     response.redirect("/admin/products");
   } catch (error) {
+    console.log(error);
     errorHandler(error, next);
   }
 };
@@ -105,7 +121,7 @@ exports.getEditProduct = async (request, response, next) => {
 exports.postEditProduct = async (request, response, next) => {
   const prodId = request.body.productId;
   const updatedTitle = request.body.title;
-  const updatedImageUrl = request.body.imageUrl;
+  const updatedImage = request.file;
   const updatedPrice = request.body.price;
   const updatedDesc = request.body.description;
   try {
@@ -125,7 +141,6 @@ exports.postEditProduct = async (request, response, next) => {
         product: {
           title: updatedTitle,
           description: updatedDesc,
-          imageUrl: updatedImageUrl,
           price: updatedPrice,
           _id: prodId,
         },
@@ -135,8 +150,11 @@ exports.postEditProduct = async (request, response, next) => {
 
     product.title = updatedTitle;
     product.description = updatedDesc;
-    product.imageUrl = updatedImageUrl;
     product.price = updatedPrice;
+    if (updatedImage) {
+      fileHelper(product.imageUrl);
+      product.imageUrl = updatedImage.path;
+    }
     const res = await product.save();
 
     if (res) {
@@ -151,13 +169,20 @@ exports.postDeleteProduct = async (request, response, next) => {
   const prodId = request.body.productId;
 
   try {
-    const result = await Product.deleteOne({
-      _id: prodId,
-      userId: request.user._id,
-    });
+    const product = await Product.findById(prodId);
+    if (!product) {
+      throw new Error("No Product Found");
+    }
+    if (product) {
+      fileHelper(product.imageUrl);
+      const result = await Product.deleteOne({
+        _id: prodId,
+        userId: request.user._id,
+      });
 
-    if (result) {
-      response.redirect("/admin/products");
+      if (result) {
+        response.redirect("/admin/products");
+      }
     }
   } catch (error) {
     errorHandler(error, next);

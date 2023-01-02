@@ -1,15 +1,53 @@
+const fs = require("fs");
+const path = require("path");
+const PDFDocument = require("pdfkit");
+
 const Product = require("../models/product");
 const Order = require("../models/order");
 const errorHandler = require("../utils/errorhandler");
 
+const ITEMS_PER_PAGE = 2;
+const pagination = async (request) => {
+  const page = +request.query.page || 1;
+  try {
+    const itemCount = await Product.countDocuments();
+    const products = await Product.find()
+      .skip((page - 1) * ITEMS_PER_PAGE)
+      .limit(ITEMS_PER_PAGE);
+    const currentPage = page;
+    const hasNextPage = ITEMS_PER_PAGE * page < itemCount;
+    const hasPreviousPage = page > 1;
+    const nextPage = page + 1;
+    const previousPage = page - 1;
+    const lastPage = Math.ceil(itemCount / ITEMS_PER_PAGE);
+    return {
+      products: products,
+      currentPage: currentPage,
+      hasNextPage: hasNextPage,
+      hasPreviousPage: hasPreviousPage,
+      nextPage: nextPage,
+      previousPage: previousPage,
+      lastPage: lastPage,
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
 exports.getProducts = async (request, response, next) => {
   try {
-    const products = await Product.find();
-    if (products) {
+    const paginationResult = await pagination(request);
+    if (paginationResult.products) {
       response.render("shop/product-list", {
-        prods: products,
+        prods: paginationResult.products,
         docTitle: "All Products",
         path: "/products",
+        currentPage: paginationResult.currentPage,
+        hasNextPage: paginationResult.hasNextPage,
+        hasPreviousPage: paginationResult.hasPreviousPage,
+        nextPage: paginationResult.nextPage,
+        previousPage: paginationResult.previousPage,
+        lastPage: paginationResult.lastPage,
       });
     }
   } catch (error) {
@@ -30,15 +68,20 @@ exports.getProductsDetail = async (request, response, next) => {
     errorHandler(error, next);
   }
 };
-
 exports.getIndex = async (request, response, next) => {
   try {
-    const products = await Product.find();
-    if (products) {
+    const paginationResult = await pagination(request);
+    if (paginationResult.products) {
       response.render("shop/index", {
-        products: products,
+        products: paginationResult.products,
         docTitle: "SHOP 🏪",
         path: "/",
+        currentPage: paginationResult.currentPage,
+        hasNextPage: paginationResult.hasNextPage,
+        hasPreviousPage: paginationResult.hasPreviousPage,
+        nextPage: paginationResult.nextPage,
+        previousPage: paginationResult.previousPage,
+        lastPage: paginationResult.lastPage,
       });
     }
   } catch (error) {
@@ -126,5 +169,95 @@ exports.postOrders = async (request, response, next) => {
     }
   } catch (error) {
     errorHandler(error, next);
+  }
+};
+
+exports.getInvoice = async (request, response, next) => {
+  const orderId = request.params.orderId;
+  try {
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return next(new Error("No Order Found"));
+    }
+    if (order.user.userId.toString() !== request.user._id.toString()) {
+      return next(new Error("Not Authorized"));
+    }
+    const invoiceName = "invoice" + "-" + orderId + ".pdf";
+    const p = path.join("data", "invoices", invoiceName);
+    const pdfDoc = new PDFDocument();
+    pdfDoc.pipe(fs.createWriteStream(p));
+    response.setHeader("Content-Type", "application/pdf");
+    response.setHeader(
+      "Content-Disposition",
+      `inline; filename=${invoiceName}`
+    );
+    pdfDoc.pipe(response);
+    pdfDoc.fontSize(16).text("Invoice", { underline: true });
+    pdfDoc
+      .moveTo(pdfDoc.x, pdfDoc.y)
+      .lineTo(pdfDoc.page.width, pdfDoc.y)
+      .stroke();
+    const products = order.products.map((prod) => prod.product.title);
+    const prices = order.products.map((prod) => prod.product.price);
+    const quantities = order.products.map((prod) => prod.quantity);
+
+    // Calculate the total sum of the products
+    const total = products.reduce(
+      (acc, product, i) => acc + prices[i] * quantities[i],
+      0
+    );
+
+    // Set the font for the table cells
+    pdfDoc.font("Helvetica");
+
+    // Calculate the width of each column
+    const columnWidth = pdfDoc.page.width / 3;
+
+    // Add the table header
+    pdfDoc.text("Product", { align: "left" });
+    pdfDoc.text("Price", { align: "center" });
+    pdfDoc.text("Quantity", { align: "right" });
+    pdfDoc.moveDown();
+
+    // Add a line below the table header
+    pdfDoc
+      .moveTo(pdfDoc.x, pdfDoc.y)
+      .lineTo(pdfDoc.page.width, pdfDoc.y)
+      .stroke();
+
+    for (let i = 0; i < products.length; i++) {
+      pdfDoc.text(products[i], { align: "left" });
+      pdfDoc.text(prices[i].toString(), { align: "center" });
+      pdfDoc.text(quantities[i], { align: "right" });
+      pdfDoc.moveDown();
+    }
+
+    pdfDoc
+      .moveTo(pdfDoc.x, pdfDoc.y)
+      .lineTo(pdfDoc.page.width, pdfDoc.y)
+      .stroke();
+
+    // Add the total row
+    pdfDoc.text("Total: ", { align: "right" });
+    pdfDoc.moveDown();
+    pdfDoc.text("$ " + total.toString(), { align: "right" });
+
+    pdfDoc.end();
+    // fs.readFile(p, (err, data) => {
+    //   if (err) {
+    //     next(err);
+    //   }
+    //   response.setHeader("Content-Type", "application/pdf");
+    //   response.setHeader(
+    //     "Content-Disposition",
+    //     `inline; filename=${invoiceName}`
+    //   );
+    //   response.send(data);
+    // });
+    // const file = fs.createReadStream(p);
+
+    // file.pipe(response);
+  } catch (error) {
+    next(error);
   }
 };

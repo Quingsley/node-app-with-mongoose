@@ -11,7 +11,7 @@
                             <th>Product</th>
                             <th>Quantity</th>
                             <th>Price</th>
-                            <th>Action</th>
+
                         </tr>
                         <% cart.forEach(product=> { %>
                             <tr>
@@ -24,26 +24,29 @@
                                 <td>
                                     <%= product.productId.price %>
                                 </td>
-                                <td>
-                                    <form action="/cart-delete" method="POST">
-                                        <button class="btn" type="submit">Delete </button>
-                                        <input type="hidden" name="productId" value="<%=product.productId._id %>">
-                                        <input type="hidden" name="_csrf" value="<%= csrfToken  %>">
-                                    </form>
-                                </td>
                             </tr>
                             <% }); %>
                     </table>
                     <div class="center">
-                        <form action="/orders" method="post">
-                            <button type="submit" class="btn order-btn">Order Now</button>
-                            <input type="hidden" name="_csrf" value="<%= csrfToken  %>">
-                        </form>
-                        <a href="/checkout" class="btn">Checkout 🏧</a>
+                        <p class="total">Total: $ <%= total%>
+                        </p>
+                    </div>
+
+                    <div class="centered">
+                        <button type="submit" class="btn" id="order-btn">PAY</button>
+                        <script src="https://js.stripe.com/v3/"></script>
+                        <script>
+                            var stripe = Stripe('pk_test_51MM50kLKZYDi7Ve6CeAtVSiklH2h4Q6xjyUiRozcRi7pzPNQqxteGTdwy97fDuZGVJ7ngKrYYV1Sdy9QNg8n204o00VkSnfK1N');
+                            const btn = document.getElementById('order-btn');
+                            btn.addEventListener('click', function () {
+                                stripe.redirectToCheckout({
+                                    sessionId: '<%=sessionId%>'
+                                })
+                            })
+                        </script>
                     </div>
                 </main>
                 <% } else { %>
                     <h1>No Products In Cart.</h1>
                     <% } %>
-
                         <%- include('../includes/end.ejs') %>

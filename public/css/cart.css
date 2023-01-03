@@ -18,4 +18,17 @@ tr:nth-child(even) {
 .center {
   text-align: center;
   margin: auto;
+  display: flex;
+  gap: 20px;
+  align-content: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.centered {
+  text-align: center;
+  margin: auto;
+}
+.total {
+  color: #00695c;
+  font-weight: bold;
 }

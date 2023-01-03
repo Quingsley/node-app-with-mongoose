@@ -165,8 +165,8 @@ exports.postEditProduct = async (request, response, next) => {
   }
 };
 
-exports.postDeleteProduct = async (request, response, next) => {
-  const prodId = request.body.productId;
+exports.deleteProduct = async (request, response, next) => {
+  const prodId = request.params.productId;
 
   try {
     const product = await Product.findById(prodId);
@@ -181,10 +181,12 @@ exports.postDeleteProduct = async (request, response, next) => {
       });
 
       if (result) {
-        response.redirect("/admin/products");
+        // response.redirect("/admin/products");
+        response.status(200).json({ message: "Product deleted Successfully" });
       }
     }
   } catch (error) {
-    errorHandler(error, next);
+    // errorHandler(error, next);
+    response.status(500).json({ message: "Product deletion failed" });
   }
 };

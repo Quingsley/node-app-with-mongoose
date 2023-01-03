@@ -24,6 +24,22 @@
             font-size: 1.2em;
             margin: 5px 0;
         }
+
+        .invoice:link,
+        .invoice:visited {
+            text-decoration: none;
+            color: #00695c;
+            padding: 0 .5 rem;
+            font-weight: bold;
+            font-size: 24px;
+        }
+
+        .invoice:active,
+        .invoice:hover {
+            background-color: #00695c;
+            color: #fff;
+            border: 2px solid #00695c;
+        }
     </style>
     </head>
 
@@ -46,7 +62,8 @@
                                             <% }); %>
                                                 <p>Total : $<%= order.products.reduce((acc,product)=>{
                                                         return acc + (product.product.price * product.quantity)
-                                                        }, 0 ) %> <a href="/invoice/<%= order._id %>">Invoice</a> </p>
+                                                        }, 0 ) %> <a href="/invoice/<%= order._id %>"
+                                                            class="invoice">Invoice</a></p>
                                     </ul>
                                 </li>
                                 <% }); %>

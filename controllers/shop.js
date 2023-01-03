@@ -1,6 +1,8 @@
 const fs = require("fs");
 const path = require("path");
 const PDFDocument = require("pdfkit");
+const stripeKey = require("../utils/password").stripeKey;
+const stripe = require("stripe")(stripeKey);
 
 const Product = require("../models/product");
 const Order = require("../models/order");
@@ -127,6 +129,51 @@ exports.deleteCartProduct = async (request, response, next) => {
   }
 };
 
+exports.getCheckout = async (request, response, next) => {
+  try {
+    const data = await request.user.populate("cart.items.productId");
+    const total = data.cart.items.reduce((acc, prod) => {
+      return (acc += prod.quantity * prod.productId.price);
+    }, 0);
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      mode: "payment",
+      line_items: data.cart.items.map((p) => {
+        return {
+          quantity: p.quantity,
+          price_data: {
+            currency: "usd",
+            unit_amount: p.productId.price * 100,
+            product_data: {
+              name: p.productId.title,
+              description: p.productId.description,
+            },
+          },
+        };
+      }),
+      success_url: `${request.protocol}://${request.get(
+        "host"
+      )}/checkout/success`,
+      cancel_url: `${request.protocol}://${request.get(
+        "host"
+      )}/checkout/cancel`,
+      customer_email: request.user.email,
+    });
+
+    if (session) {
+      response.render("shop/checkout", {
+        docTitle: "Checkout 🏧",
+        path: "/checkout",
+        cart: data.cart.items,
+        total: total,
+        sessionId: session.id,
+      });
+    }
+  } catch (error) {
+    errorHandler(error, next);
+  }
+};
+
 exports.getOrders = async (request, response, next) => {
   try {
     const orders = await Order.find({
@@ -210,9 +257,6 @@ exports.getInvoice = async (request, response, next) => {
     // Set the font for the table cells
     pdfDoc.font("Helvetica");
 
-    // Calculate the width of each column
-    const columnWidth = pdfDoc.page.width / 3;
-
     // Add the table header
     pdfDoc.text("Product", { align: "left" });
     pdfDoc.text("Price", { align: "center" });
@@ -243,20 +287,6 @@ exports.getInvoice = async (request, response, next) => {
     pdfDoc.text("$ " + total.toString(), { align: "right" });
 
     pdfDoc.end();
-    // fs.readFile(p, (err, data) => {
-    //   if (err) {
-    //     next(err);
-    //   }
-    //   response.setHeader("Content-Type", "application/pdf");
-    //   response.setHeader(
-    //     "Content-Disposition",
-    //     `inline; filename=${invoiceName}`
-    //   );
-    //   response.send(data);
-    // });
-    // const file = fs.createReadStream(p);
-
-    // file.pipe(response);
   } catch (error) {
     next(error);
   }

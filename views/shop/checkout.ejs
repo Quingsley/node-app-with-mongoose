@@ -36,7 +36,7 @@
                         <button type="submit" class="btn" id="order-btn">PAY</button>
                         <script src="https://js.stripe.com/v3/"></script>
                         <script>
-                            var stripe = Stripe('pk_test_51MM50kLKZYDi7Ve6CeAtVSiklH2h4Q6xjyUiRozcRi7pzPNQqxteGTdwy97fDuZGVJ7ngKrYYV1Sdy9QNg8n204o00VkSnfK1N');
+                            var stripe = Stripe('<%=stripePublishKey%>');
                             const btn = document.getElementById('order-btn');
                             btn.addEventListener('click', function () {
                                 stripe.redirectToCheckout({

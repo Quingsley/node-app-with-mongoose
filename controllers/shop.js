@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const PDFDocument = require("pdfkit");
 const stripeKey = require("../utils/password").stripeKey;
+const stripePublishKey = require("../utils/password").stripePublishKey;
 const stripe = require("stripe")(stripeKey);
 
 const Product = require("../models/product");
@@ -166,6 +167,7 @@ exports.getCheckout = async (request, response, next) => {
         path: "/checkout",
         cart: data.cart.items,
         total: total,
+        stripePublishKey: stripePublishKey,
         sessionId: session.id,
       });
     }

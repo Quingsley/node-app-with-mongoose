@@ -2,4 +2,3 @@ node_modules
 utils/password.js
 server.cert
 server.key
-nodemon.json

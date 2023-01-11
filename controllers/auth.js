@@ -6,10 +6,9 @@ const { validationResult } = require("express-validator");
 const crypto = require("crypto");
 
 const User = require("../models/user");
-const sendGridApiKey = require("../utils/password").sendgridkey;
 const errorHandler = require("../utils/errorhandler");
 
-sendGridMail.setApiKey(sendGridApiKey);
+sendGridMail.setApiKey(process.env.SEND_GRID_KEY);
 
 const errorMessage = (request) => {
   let message = request.flash("error");

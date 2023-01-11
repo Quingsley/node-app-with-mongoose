@@ -1,5 +1,6 @@
 const express = require("express");
 const path = require("path");
+const fs = require("fs");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const session = require("express-session");
@@ -8,9 +9,12 @@ const csrf = require("csurf");
 const flash = require("connect-flash");
 const multer = require("multer");
 const { v4: uuidv4 } = require("uuid");
+const helmet = require("helmet");
+const compression = require("compression");
+const morgan = require("morgan");
+// const https = require("https");
 
 const errorController = require("./controllers/error");
-const PASSWORD = require("./utils/password").mongodbpass;
 
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
@@ -28,7 +32,7 @@ app.set("views", "views");
 app.use(express.static(path.join(__dirname, "/public")));
 app.use("/images", express.static(path.join(__dirname, "/images")));
 
-const MONGO_URI = `mongodb+srv://quingsley:${PASSWORD}@cluster0.hkxyhxj.mongodb.net/shop-1?retryWrites=true`;
+const MONGO_URI = `mongodb+srv://quingsley:${process.env.MONGO_DB_PASSWORD}@cluster0.hkxyhxj.mongodb.net/${process.env.MONGO_DEFAULT_DB}?retryWrites=true`;
 
 const store = new MongoDBStore({
   uri: MONGO_URI,
@@ -55,6 +59,17 @@ const fileFilter = (req, file, cb) => {
     cb(null, false);
   }
 };
+
+const accessLogStream = fs.createWriteStream(
+  path.join(__dirname, "access.log"),
+  { flags: "a" }
+);
+// const privateKey = fs.readFileSync("server.key");
+// const certificate = fs.readFileSync("server.cert");
+
+app.use(helmet());
+app.use(compression());
+app.use(morgan("combined", { stream: accessLogStream }));
 app.use(
   multer({ storage: fileStorage, fileFilter: fileFilter }).single("image")
 );
@@ -117,6 +132,12 @@ async function main() {
       app.listen(3000, () => {
         console.log("Server Running a http://localhost:3000");
       });
+
+      // https
+      //   .createServer({ key: privateKey, cert: certificate }, app)
+      //   .listen(3000, () => {
+      //     console.log("Server Running a https://localhost:3000");
+      //   });
     }
   } catch (error) {
     console.log(error); //TODO fix error

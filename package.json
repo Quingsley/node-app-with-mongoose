@@ -7,7 +7,7 @@
     "node": "18.10.0"
   },
   "scripts": {
-    "start": "NODE_ENV=production MONGO_PASSWORD=3ceHwlZoNfB6sbUG MONGO_DEFAULT_DATABASE=shop-1 STRIPE_KEY=sk_test_51MM50kLKZYDi7Ve6cdSRASC5FZr5JhnjyLSQQw5jC9mos81cYBtTnIrA88NzlT7QhuEhsjEtuSNUbhL3yHW2G1wE00eMXCNdHb STRIPE_PUBLISH_KEY=pk_test_51MM50kLKZYDi7Ve6CeAtVSiklH2h4Q6xjyUiRozcRi7pzPNQqxteGTdwy97fDuZGVJ7ngKrYYV1Sdy9QNg8n204o00VkSnfK1N SEND_GRID_KEY=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  node app.js",
+    "start": "NODE_ENV=production MONGO_DB_PASSWORD=3ceHwlZoNfB6sbUG MONGO_DEFAULT_DATABASE=shop-1 STRIPE_KEY=sk_test_51MM50kLKZYDi7Ve6cdSRASC5FZr5JhnjyLSQQw5jC9mos81cYBtTnIrA88NzlT7QhuEhsjEtuSNUbhL3yHW2G1wE00eMXCNdHb STRIPE_PUBLISH_KEY=pk_test_51MM50kLKZYDi7Ve6CeAtVSiklH2h4Q6xjyUiRozcRi7pzPNQqxteGTdwy97fDuZGVJ7ngKrYYV1Sdy9QNg8n204o00VkSnfK1N SEND_GRID_KEY=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  node app.js",
     "start-server": "node app.js",
     "start:dev": "nodemon app.js",
     "test": "echo \"Error: no test specified\" && exit 1"

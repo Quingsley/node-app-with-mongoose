@@ -129,7 +129,7 @@ async function main() {
     const connection = await mongoose.connect(MONGO_URI);
 
     if (connection) {
-      app.listen(3000, () => {
+      app.listen(process.env.PORT || 3000, () => {
         console.log("Server Running a http://localhost:3000");
       });
 

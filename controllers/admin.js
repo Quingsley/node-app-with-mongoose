@@ -167,7 +167,6 @@ exports.postEditProduct = async (request, response, next) => {
 
 exports.deleteProduct = async (request, response, next) => {
   const prodId = request.params.productId;
-
   try {
     const product = await Product.findById(prodId);
     if (!product) {

@@ -1,6 +1,6 @@
-const deleteProduct = async (btn) => {
-  const productId = btn.parentNode.querySelector("[name=productId]").value;
-  const csrfToken = btn.parentNode.querySelector("[name=_csrf]").value;
+const deleteProduct = async function () {
+  const productId = this.parentNode.querySelector("[name=productId]").value;
+  const csrfToken = this.parentNode.querySelector("[name=_csrf]").value;
   try {
     const result = await fetch(`/admin/product/${productId}`, {
       method: "delete",
@@ -10,10 +10,14 @@ const deleteProduct = async (btn) => {
     });
     const data = await result.json();
     if (data.message == "Product deleted Successfully") {
-      const parentEl = btn.closest("article");
+      const parentEl = this.closest("article");
       parentEl.parentNode.removeChild(parentEl);
     }
   } catch (error) {
     console.error(error);
   }
 };
+
+const btn = document.querySelector(".btn--delete");
+
+btn.addEventListener("click", deleteProduct);

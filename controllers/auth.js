@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
 const sendGridMail = require("@sendgrid/mail");
-
+require("dotenv").config();
 const { validationResult } = require("express-validator");
 
 const crypto = require("crypto");

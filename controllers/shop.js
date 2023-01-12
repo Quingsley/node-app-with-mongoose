@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const PDFDocument = require("pdfkit");
+require("dotenv").config();
 const stripe = require("stripe")(process.env.STRIPE_KEY);
 
 const Product = require("../models/product");

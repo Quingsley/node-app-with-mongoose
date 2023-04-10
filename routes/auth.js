@@ -4,8 +4,6 @@ const loginController = require("../controllers/auth");
 
 const router = express.Router();
 
-router.get("/login", loginController.getLogin);
-router.get("/signup", loginController.getSignup);
 router.post(
   "/login",
   [
@@ -41,19 +39,11 @@ router.post(
       .isAlphanumeric()
       .trim()
       .isLength({ min: 8 }),
-    body("confirmPassword").custom((value, { req }) => {
-      console.log();
-      if (value !== req.body.password) {
-        throw new Error("Passwords Have to Match!");
-      }
-      return true;
-    }),
   ],
   loginController.postSignup
 );
-router.post("/logout", loginController.postLogOut);
+
 router.post("/reset", loginController.postReset);
-router.get("/reset", loginController.getReset);
 router.get("/reset/:token", loginController.getNewPassword);
 router.post("/new-password", loginController.postNewPassword);
 

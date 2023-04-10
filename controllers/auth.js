@@ -2,54 +2,14 @@ const bcrypt = require("bcryptjs");
 const sendGridMail = require("@sendgrid/mail");
 require("dotenv").config();
 const { validationResult } = require("express-validator");
-
+const jwt = require("jsonwebtoken");
+const SECRET = require("../utils/password").SECRET;
 const crypto = require("crypto");
-
 const User = require("../models/user");
 const errorHandler = require("../utils/errorhandler");
 
 sendGridMail.setApiKey(process.env.SEND_GRID_KEY);
 
-const errorMessage = (request) => {
-  let message = request.flash("error");
-  if (message.length > 0) {
-    message = message[0];
-  } else {
-    message = null;
-  }
-  return message;
-};
-
-exports.getLogin = (request, response, next) => {
-  //   const isLoggedIn = request.get("Cookie").split("=")[1].trim() === "true";
-  //   console.log(isLoggedIn);
-  //   console.log(request.session.user);
-
-  response.render("auth/login", {
-    docTitle: "Login",
-    path: "/login",
-    errorMessage: errorMessage(request),
-    oldInput: {
-      email: "",
-      password: "",
-    },
-    validationErrors: [],
-  });
-};
-
-exports.getSignup = (request, response, next) => {
-  response.render("auth/signup", {
-    docTitle: "Signup",
-    path: "/signup",
-    errorMessage: errorMessage(request),
-    oldInput: {
-      email: "",
-      password: "",
-      confirmPassword: "",
-    },
-    validationErrors: [],
-  });
-};
 
 exports.postLogin = async (request, response, next) => {
   try {
@@ -58,51 +18,35 @@ exports.postLogin = async (request, response, next) => {
     const error = validationResult(request).errors;
 
     if (error.length > 0) {
-      return response.status(422).render("auth/login", {
-        docTitle: "Login",
-        path: "/login",
-        errorMessage: error[0].msg,
-        oldInput: {
-          email: email,
-          password: password,
-        },
-        validationErrors: error,
+      return response.status(422).json({
+        message: error[0].msg,
       });
     }
     const user = await User.findOne({ email: email });
     if (!user) {
-      request.flash("error", "Invalid email or password");
-      return response.status(422).render("auth/login", {
-        docTitle: "Login",
-        path: "/login",
-        errorMessage: errorMessage(request),
-        oldInput: {
-          email: email,
-          password: password,
-        },
-        validationErrors: [],
-      });
+      return response
+        .status(422)
+        .json({ message: "Invalid email or password" });
     } else {
       const doPasswordsMatch = await bcrypt.compare(password, user.password);
       if (doPasswordsMatch) {
-        request.session.user = user;
-        request.session.isLoggedIn = true;
-        request.session.save((error) => {
-          console.error(error);
-          return response.redirect("/");
+        const token = jwt.sign(
+          {
+            email: user.email,
+            userId: user._id,
+          },
+          `${SECRET}`,
+          { expiresIn: "1h" }
+        );
+
+        return response.status(200).json({
+          token: token,
+          userId: user._id.toString(),
         });
       } else {
-        request.flash("error", "Invalid email or password");
-        return response.status(422).render("auth/login", {
-          docTitle: "Login",
-          path: "/login",
-          errorMessage: errorMessage(request),
-          oldInput: {
-            email: email,
-            password: password,
-          },
-          validationErrors: [],
-        });
+        return response
+          .status(422)
+          .json({ message: "Invalid email or Password" });
       }
     }
   } catch (error) {
@@ -116,26 +60,14 @@ exports.postSignup = async (request, response, next) => {
   const error = validationResult(request).errors;
 
   if (error.length > 0) {
-    return response.status(422).render("auth/signup", {
-      docTitle: "Signup",
-      path: "/signup",
-      errorMessage: error[0].msg,
-      oldInput: {
-        email: email,
-        password: password,
-        confirmPassword: request.body.confirmPassword,
-      },
-      validationErrors: error,
-    });
+    return response.status(422).json({ message: error[0].msg });
   }
   try {
     const isEmailPresent = await User.findOne({ email: email });
     if (isEmailPresent) {
-      request.flash(
-        "error",
-        "Email already exists please pick a different email"
-      );
-      return response.redirect("/signup"); // email already exists in db so redirect error handled later
+      return response.status(422).json({
+        message: "Email already exists please pick a different email",
+      });
     } else {
       const HASHED_PASSWORD = await bcrypt.hash(password, 12);
       const user = new User({
@@ -145,7 +77,6 @@ exports.postSignup = async (request, response, next) => {
       });
       const result = await user.save();
       if (result) {
-        response.redirect("/login");
         const msg = {
           to: email,
           from: "jerome@kberen.com",
@@ -155,6 +86,10 @@ exports.postSignup = async (request, response, next) => {
         };
 
         await sendGridMail.send(msg);
+        return response.status(201).json({
+          message: "User Created successfully",
+          user: result._id,
+        });
       }
     }
   } catch (error) {
@@ -162,41 +97,31 @@ exports.postSignup = async (request, response, next) => {
   }
 };
 
-exports.postLogOut = (request, response, next) => {
-  request.session.destroy((err) => {
-    console.error(err);
-    response.redirect("/");
-  });
-};
-
-exports.getReset = (request, response, next) => {
-  response.render("auth/reset", {
-    docTitle: "Reset Passowrd",
-    path: "/reset",
-    errorMessage: errorMessage(request),
-  });
-};
-
 exports.postReset = async (request, response, next) => {
   let token;
   crypto.randomBytes(32, (err, buffer) => {
     if (err) {
       console.error(err);
-      return response.redirect("/reset");
+
+      return response.status(500).json({ message: "Internal server error" });
     }
     token = buffer.toString("hex");
   });
   try {
     const currentUser = await User.findOne({ email: request.body.email });
     if (!currentUser) {
-      request.flash("error", "No account with that email found");
-      return response.redirect("/reset");
+      return response
+        .status(422)
+        .json({ message: "No account with that email found" });
     }
     currentUser.resetToken = token;
     currentUser.resetTokenExpirationDate = Date.now() + 360000; // expires after 1 hour
     const result = await currentUser.save();
     if (result) {
-      response.redirect("/");
+      response.status(200).json({
+        message: "An email Has been sent for you to reset your token",
+        resetToken: token, // To be used when reseting password
+      });
       const msg = {
         to: currentUser.email,
         from: "jerome@kberen.com",
@@ -220,16 +145,7 @@ exports.getNewPassword = async (request, response, next) => {
       resetTokenExpirationDate: { $gt: Date.now() },
     });
     if (!user) {
-      response.redirect("/reset");
-    }
-    if (user) {
-      response.render("auth/new-password", {
-        docTitle: "Update Password",
-        path: "/new-password",
-        errorMessage: errorMessage(request),
-        userId: user._id.toString(),
-        token: token,
-      });
+      response.status(422).json({ message: "Reset Token already expired" });
     }
   } catch (err) {
     errorHandler(err, next);
@@ -239,7 +155,7 @@ exports.getNewPassword = async (request, response, next) => {
 exports.postNewPassword = async (request, response, next) => {
   const userId = request.body.userId;
   const newPassword = request.body.password;
-  const token = request.body.token;
+  const token = request.body.token; //its not jsonweb token
   try {
     const user = await User.findOne({
       _id: userId,
@@ -253,7 +169,7 @@ exports.postNewPassword = async (request, response, next) => {
       user.resetTokenExpirationDate = undefined;
       const result = await user.save();
       if (result) {
-        response.redirect("/login");
+        response.status(200).json({ message: "Password updated successfully" });
       }
     }
   } catch (error) {

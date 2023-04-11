@@ -10,7 +10,6 @@ const errorHandler = require("../utils/errorhandler");
 
 sendGridMail.setApiKey(process.env.SEND_GRID_KEY);
 
-
 exports.postLogin = async (request, response, next) => {
   try {
     const email = request.body.email;
@@ -36,7 +35,7 @@ exports.postLogin = async (request, response, next) => {
             userId: user._id,
           },
           `${SECRET}`,
-          { expiresIn: "1h" }
+          { expiresIn: "2h" }
         );
 
         return response.status(200).json({

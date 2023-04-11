@@ -78,6 +78,7 @@ exports.postEditProduct = async (request, response, next) => {
 
 exports.deleteProduct = async (request, response, next) => {
   const prodId = request.params.productId;
+
   try {
     const product = await Product.findById(prodId);
     if (!product) {
@@ -88,7 +89,7 @@ exports.deleteProduct = async (request, response, next) => {
         _id: prodId,
         userId: request.user._id,
       });
-
+      console.log(result);
       if (result) {
         response.status(200).json({ message: "Product deleted Successfully" });
       }

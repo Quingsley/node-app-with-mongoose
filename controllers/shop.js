@@ -40,17 +40,7 @@ exports.getProducts = async (request, response, next) => {
   try {
     const paginationResult = await pagination(request);
     if (paginationResult.products) {
-      response.render("shop/product-list", {
-        prods: paginationResult.products,
-        docTitle: "All Products",
-        path: "/products",
-        currentPage: paginationResult.currentPage,
-        hasNextPage: paginationResult.hasNextPage,
-        hasPreviousPage: paginationResult.hasPreviousPage,
-        nextPage: paginationResult.nextPage,
-        previousPage: paginationResult.previousPage,
-        lastPage: paginationResult.lastPage,
-      });
+      return response.status(200).json({ ...paginationResult });
     }
   } catch (error) {
     errorHandler(error, next);
@@ -61,11 +51,7 @@ exports.getProductsDetail = async (request, response, next) => {
   const prodId = request.params.productId;
   try {
     const product = await Product.findById(prodId);
-    response.render("shop/product-detail", {
-      docTitle: product.title,
-      path: "/products",
-      product: product,
-    });
+    response.status(200).json({ product });
   } catch (error) {
     errorHandler(error, next);
   }
@@ -74,31 +60,18 @@ exports.getIndex = async (request, response, next) => {
   try {
     const paginationResult = await pagination(request);
     if (paginationResult.products) {
-      response.render("shop/index", {
-        products: paginationResult.products,
-        docTitle: "SHOP 🏪",
-        path: "/",
-        currentPage: paginationResult.currentPage,
-        hasNextPage: paginationResult.hasNextPage,
-        hasPreviousPage: paginationResult.hasPreviousPage,
-        nextPage: paginationResult.nextPage,
-        previousPage: paginationResult.previousPage,
-        lastPage: paginationResult.lastPage,
-      });
+      response.status(200).json({ ...paginationResult });
     }
   } catch (error) {
     errorHandler(error, next);
   }
 };
 
+//made it a post request so as to attach token on the header
 exports.getCart = async (request, response, next) => {
   try {
     const data = await request.user.populate("cart.items.productId");
-    response.render("shop/cart", {
-      docTitle: "Your Cart 🛒",
-      path: "/cart",
-      cart: data.cart.items,
-    });
+    response.status(200).json({ cartItems: data.cart });
   } catch (error) {
     errorHandler(error, next);
   }
@@ -110,7 +83,9 @@ exports.postCart = async (request, response, next) => {
     const user = request.user; //USER INSTANCE HAVING METHODS
     const addingToCart = await user.addToCart(currentProduct);
     if (addingToCart) {
-      response.redirect("/cart");
+      response
+        .status(201)
+        .json({ message: "Items added to cart successfully" });
     }
   } catch (error) {
     errorHandler(error, next);
@@ -122,7 +97,9 @@ exports.deleteCartProduct = async (request, response, next) => {
   try {
     const result = await request.user.removeFromCart(productId);
     if (result) {
-      response.redirect("/cart");
+      response
+        .status(200)
+        .json({ message: "Product deleted Successfully from cart" });
     }
   } catch (error) {
     errorHandler(error, next);
@@ -161,9 +138,7 @@ exports.getCheckout = async (request, response, next) => {
     });
 
     if (session) {
-      response.render("shop/checkout", {
-        docTitle: "Checkout 🏧",
-        path: "/checkout",
+      response.status(200).json({
         cart: data.cart.items,
         total: total,
         stripePublishKey: process.env.STRIPE_PUBLISH_KEY,
@@ -175,17 +150,13 @@ exports.getCheckout = async (request, response, next) => {
   }
 };
 
+//swithced to post to attach token to header
 exports.getOrders = async (request, response, next) => {
   try {
     const orders = await Order.find({
       "user.userId": request.user._id,
     });
-
-    response.render("shop/orders", {
-      docTitle: "Your Orders",
-      path: "/orders",
-      orders: orders,
-    });
+    response.status(200).json({ orders });
   } catch (error) {
     errorHandler(error, next);
   }
@@ -212,7 +183,9 @@ exports.postOrders = async (request, response, next) => {
     if (result) {
       const clearCart = await user.clearCart();
       if (clearCart) {
-        response.redirect("/orders");
+        response
+          .status(200)
+          .json({ message: "Order Processed and Cart cleared Successfully" });
       }
     }
   } catch (error) {
@@ -220,6 +193,8 @@ exports.postOrders = async (request, response, next) => {
   }
 };
 
+//Attach token to header hence switch to post request
+//TODO: Test by simply hitting the endpoint on client or either figure if could upload file to a bucket?
 exports.getInvoice = async (request, response, next) => {
   const orderId = request.params.orderId;
   try {
